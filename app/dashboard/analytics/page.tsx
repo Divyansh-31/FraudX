@@ -132,7 +132,7 @@ export default function AnalyticsPage() {
           <div className="p-4 h-56 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart innerRadius="10%" outerRadius="80%" data={[{ name: "accuracy", value: accuracy, fill: COLORS.safe }]} startAngle={90} endAngle={-270}>
-                <RadialBar minAngle={15} background clockWise={true} dataKey="value" />
+                <RadialBar background dataKey="value" />
                 <Legend />
                 <Tooltip />
               </RadialBarChart>
