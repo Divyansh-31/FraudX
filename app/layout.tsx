@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme-providers";
 import ClientOnly from "@/components/client-only"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SiteHeader } from "@/components/site-header"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,7 +44,12 @@ export default function RootLayout({
             <ClientOnly>
               <AppSidebar variant="inset" />
             </ClientOnly>
-            <SidebarInset>{children}</SidebarInset>
+            <SidebarInset>
+              <ClientOnly>
+                <SiteHeader />
+              </ClientOnly>
+              {children}
+            </SidebarInset>
           </SidebarProvider>
         </ThemeProvider>
       </body>

@@ -1,6 +1,7 @@
 import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
 
 import { Badge } from "@/components/ui/badge"
+import { formatINR } from "@/lib/utils"
 import {
   Card,
   CardAction,
@@ -17,7 +18,7 @@ export function SectionCards() {
         <CardHeader>
           <CardDescription>Total Revenue</CardDescription>
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            $1,250.00
+            {formatINR(1250)}
           </CardTitle>
           <CardAction>
             <Badge variant="outline">

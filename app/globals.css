@@ -48,8 +48,26 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
+  /* Semantic color tokens for FraudX security theme */
+  --background: #0b0f14; /* Deep matte black (neutral-950) */
+  --foreground: #f8fafc; /* slate-50 - primary text */
+  --text-secondary: #94a3b8; /* slate-400 - secondary text */
+
+  --color-primary: #10b981; /* emerald-500 (safe) */
+  --color-primary-rgb: 16 185 129;
+  --color-primary-400: #34d399; /* emerald-400 */
+  --color-primary-400-rgb: 52 211 153;
+  --color-alert: #f43f5e; /* rose-500 (danger) */
+  --color-alert-rgb: 244 63 94;
+  --color-alert-400: #fb7185; /* rose-400 */
+  --color-alert-400-rgb: 251 113 133;
+  --color-warning: #f59e0b; /* amber-500 (caution) */
+  --color-warning-rgb: 245 158 11;
+
+  /* Chart-friendly mappings (fallbacks) */
+  --color-desktop: var(--color-primary);
+  --color-mobile: var(--color-warning);
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
@@ -82,8 +100,18 @@
 }
 
 .dark {
-  --background: oklch(0.147 0.004 49.25);
-  --foreground: oklch(0.985 0.001 106.423);
+  --background: #0b0f14;
+  --foreground: #f8fafc;
+  --text-secondary: #94a3b8;
+
+  --color-primary: #10b981;
+  --color-primary-400: #34d399;
+  --color-alert: #f43f5e;
+  --color-alert-400: #fb7185;
+  --color-warning: #f59e0b;
+
+  --color-desktop: var(--color-primary);
+  --color-mobile: var(--color-warning);
   --card: oklch(0.216 0.006 56.043);
   --card-foreground: oklch(0.985 0.001 106.423);
   --popover: oklch(0.216 0.006 56.043);
@@ -121,5 +149,31 @@
   }
   body {
     @apply bg-background text-foreground;
+    color: var(--foreground);
+  }
+
+  /* Card visual treatment for premium cyber-security aesthetic */
+  [data-slot="card"] {
+    background-color: rgb(15 23 42 / 0.5); /* bg-neutral-900/50 */
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px); /* backdrop-blur-md */
+    border: 1px solid rgba(255,255,255,0.05); /* thin white/5 border */
+  }
+
+  /* Global chart gradient ids fallback styles (used by Recharts defs) */
+  svg defs linearGradient stop {
+    transition: stop-color 150ms ease;
+  }
+
+  /* High-risk marker glow (used by map client DivIcon) */
+  .high-risk-marker .marker {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background-color: var(--color-alert-400);
+    box-shadow: 0 0 8px var(--color-alert-400);
+    filter: drop-shadow(0 0 8px var(--color-alert-400));
+    border: 2px solid rgba(255,255,255,0.06);
   }
 }

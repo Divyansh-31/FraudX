@@ -2,22 +2,50 @@
 
 import * as React from "react"
 import transactions from "@/lib/data"
+import { formatINR } from "@/lib/utils"
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts"
 
-// Aggregate by day (YYYY-MM-DD) with compact label
-function aggregateByDay() {
-  const map = new Map<string, { date: string; label: string; revenue: number; orders: number }>()
+// Generate a realistic-looking series for the last `days` days.
+// Uses the transaction dataset to derive scale, then adds weekday patterns,
+// random noise and occasional spikes so the chart looks natural.
+function aggregateByDay(days = 30) {
+  // derive scale from real transactions
+  const totalRevenue = transactions.reduce((s, t) => s + t.amount, 0)
+  const uniqueDays = new Set(transactions.map((t) => new Date(t.timestamp).toISOString().slice(0, 10))).size || 1
+  const avgRevenuePerDay = totalRevenue / uniqueDays
+  const avgTxAmount = Math.max(1, transactions.reduce((s, t) => s + t.amount, 0) / Math.max(1, transactions.length))
 
-  transactions.forEach((t) => {
-    const d = new Date(t.timestamp)
+  const out: { date: string; label: string; revenue: number; orders: number }[] = []
+  const now = new Date()
+  const start = new Date(now)
+  start.setDate(now.getDate() - (days - 1))
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
     const key = d.toISOString().slice(0, 10)
-    const entry = map.get(key) || { date: key, label: new Date(key).toLocaleDateString(undefined, { month: "short", day: "numeric" }), revenue: 0, orders: 0 }
-    entry.revenue += t.amount
-    entry.orders += 1
-    map.set(key, entry)
-  })
+    const label = d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
 
-  return Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date))
+    // weekday effect: weekends lower traffic, weekdays higher
+    const weekday = d.getDay()
+    const weekdayMultiplier = weekday === 0 || weekday === 6 ? 0.7 : 1.0
+
+    // base revenue around the historical average with per-day randomness
+    let revenue = avgRevenuePerDay * (0.7 + Math.random() * 1.0) * weekdayMultiplier
+
+    // occasional spikes (marketing, promos, anomalies)
+    if (Math.random() < 0.08) revenue *= 1 + 0.5 + Math.random() * 2
+
+    // add very small noise and clamp
+    revenue = Math.max(0, Number((revenue * (0.9 + Math.random() * 0.2)).toFixed(2)))
+
+    // derive orders roughly from revenue and average transaction size
+    const orders = Math.max(1, Math.round(revenue / Math.max(1, avgTxAmount) * (0.7 + Math.random() * 0.8)))
+
+    out.push({ date: key, label, revenue, orders })
+  }
+
+  return out
 }
 
 function CustomTooltip({ active, payload, label }: any) {
@@ -30,7 +58,7 @@ function CustomTooltip({ active, payload, label }: any) {
         <div key={p.name} className="flex items-center gap-2">
           <div style={{ width: 10, height: 10, background: p.stroke, borderRadius: 2 }} />
           <div className="text-zinc-200">
-            {p.name}: {p.dataKey === "revenue" ? `$${(p.value as number).toFixed(2)}` : p.value}
+            {p.name}: {p.dataKey === "revenue" ? formatINR(p.value as number) : p.value}
           </div>
         </div>
       ))}
@@ -66,26 +94,26 @@ export default function RevenueOrdersChart() {
         <LineChart data={transformed}>
           <defs>
             <linearGradient id="revGrad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#06b6d4" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#1f2937" strokeDasharray="3 3" />
-          <XAxis dataKey="label" tick={{ fill: "#9ca3af" }} />
-          <YAxis yAxisId="left" tick={{ fill: "#9ca3af" }} tickFormatter={(v) => `$${Number(v).toFixed(0)}`} />
-          <YAxis yAxisId="right" orientation="right" tick={{ fill: "#9ca3af" }} />
+          <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+          <XAxis dataKey="label" tick={{ fill: "var(--text-secondary)" }} />
+          <YAxis yAxisId="left" tick={{ fill: "var(--text-secondary)" }} tickFormatter={(v) => formatINR(Number(v))} />
+          <YAxis yAxisId="right" orientation="right" tick={{ fill: "var(--text-secondary)" }} />
           <Tooltip content={<CustomTooltip />} />
-          <Legend wrapperStyle={{ color: "#9ca3af" }} />
+          <Legend wrapperStyle={{ color: "var(--text-secondary)" }} />
 
           <Line
             yAxisId="left"
             type="basis"
             dataKey="revenue"
             name="Revenue"
-            stroke="#06b6d4"
+            stroke="var(--color-primary)"
             strokeWidth={3}
-            dot={RevenueDot}
-            activeDot={{ r: 6 }}
+            dot={false}
+            activeDot={false}
             isAnimationActive={true}
             animationDuration={800}
           />
@@ -95,9 +123,9 @@ export default function RevenueOrdersChart() {
             type="basis"
             dataKey="orders"
             name="Orders"
-            stroke="#f97316"
+            stroke="var(--color-warning)"
             strokeWidth={2}
-            dot={{ r: 3 }}
+            dot={false}
             isAnimationActive={true}
             animationDuration={1000}
           />

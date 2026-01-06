@@ -68,10 +68,23 @@ export default function MapClient({ data, initialCenter }: { data: Transaction[]
 
     const markers: L.Marker[] = []
     data.forEach((t) => {
-      const m = L.marker([t.coordinates.lat, t.coordinates.lng])
-      m.bindPopup(`<strong>${t.productName}</strong><br/>${t.customerName}<br/>Risk: ${t.riskScore}`)
-      markersLayer.addLayer(m)
-      markers.push(m)
+      // Use a glowing DivIcon for high-risk markers to make them stand out on dark maps
+      let marker: L.Marker
+      if (t.riskScore > 80) {
+        const icon = L.divIcon({
+          className: "high-risk-marker",
+          html: `<span class="marker" title="High risk: ${t.riskScore}"></span>`,
+          iconSize: [18, 18],
+          iconAnchor: [9, 9],
+        })
+        marker = L.marker([t.coordinates.lat, t.coordinates.lng], { icon })
+      } else {
+        marker = L.marker([t.coordinates.lat, t.coordinates.lng])
+      }
+
+      marker.bindPopup(`<strong>${t.productName}</strong><br/>${t.customerName}<br/>Risk: ${t.riskScore}`)
+      markersLayer.addLayer(marker)
+      markers.push(marker)
     })
 
     // Draw dashed polyline connecting high-risk transactions (riskScore > 80)

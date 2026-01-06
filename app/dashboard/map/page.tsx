@@ -1,4 +1,5 @@
 "use client"
+import * as React from "react"
 import dynamic from 'next/dynamic';
 import transactions from "@/lib/data";
 
@@ -12,8 +13,10 @@ const MapView = dynamic(() => import("@/components/map-view"), {
   )
 });
 
-export default function MapPage({ searchParams }: { searchParams?: { id?: string } }) {
-  const id = searchParams?.id;
+export default function MapPage({ searchParams }: { searchParams?: Promise<{ id?: string }> | { id?: string } }) {
+  // Unwrap the promise-style `searchParams` in client components per Next.js guidance
+  const params = (React as any).use ? (React as any).use(searchParams) : searchParams
+  const id = params?.id
   const tx = transactions.find((t) => t.id === id);
   
   // Cast to the expected [number, number] tuple for Leaflet

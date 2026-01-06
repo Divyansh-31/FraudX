@@ -10,6 +10,7 @@ import {
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import transactions, { type Transaction } from "@/lib/data"
+import { formatINR } from "@/lib/utils"
 
 const columnHelper = createColumnHelper<Transaction>()
 
@@ -23,9 +24,48 @@ export function TransactionTable({ data }: { data?: Transaction[] }) {
       columnHelper.accessor("customerName", { header: "Customer" }),
       columnHelper.accessor("amount", {
         header: "Amount",
-        cell: (info) => `$${info.getValue().toFixed(2)}`,
+        cell: (info) => formatINR(info.getValue() as number),
       }),
-      columnHelper.accessor("status", { header: "Status" }),
+      columnHelper.accessor("status", {
+        header: "Status",
+        cell: (info) => {
+          const value = info.getValue() as string
+          if (!value) return null
+          const baseClasses = "inline-flex items-center rounded-full px-2 py-0.5 text-sm font-medium"
+
+          if (value === "Verified") {
+            return (
+              <span
+                className={baseClasses}
+                style={{
+                  backgroundColor: "rgba(var(--color-primary-rgb), 0.10)",
+                  color: "rgb(var(--color-primary-rgb))",
+                  border: "1px solid rgba(var(--color-primary-rgb), 0.20)",
+                }}
+              >
+                {value}
+              </span>
+            )
+          }
+
+          if (value === "Blocked") {
+            return (
+              <span
+                className={baseClasses}
+                style={{
+                  backgroundColor: "rgba(var(--color-alert-rgb), 0.10)",
+                  color: "rgb(var(--color-alert-rgb))",
+                  border: "1px solid rgba(var(--color-alert-rgb), 0.20)",
+                }}
+              >
+                {value}
+              </span>
+            )
+          }
+
+          return <span className={baseClasses}>{value}</span>
+        },
+      }),
       columnHelper.accessor("riskScore", { header: "Risk" }),
       columnHelper.accessor("timestamp", {
         header: "Timestamp",
